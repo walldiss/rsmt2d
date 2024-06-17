@@ -54,6 +54,19 @@ func (l *LeoRSCodec) Decode(data [][]byte) ([][]byte, error) {
 	return data, err
 }
 
+func (l *LeoRSCodec) ReconstructSome(data [][]byte, required []bool) error {
+	half := len(data) / 2
+	enc, err := l.loadOrInitEncoder(half)
+	if err != nil {
+		return err
+	}
+	err = enc.ReconstructSome(data, required)
+	if errors.Is(err, reedsolomon.ErrTooFewShards) {
+		return ErrTooFewShares
+	}
+	return err
+}
+
 func (l *LeoRSCodec) loadOrInitEncoder(dataLen int) (reedsolomon.Encoder, error) {
 	enc, ok := l.encCache.Load(dataLen)
 	if !ok {
